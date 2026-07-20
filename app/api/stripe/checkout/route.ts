@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 
 /**
  * Creates a Stripe Checkout Session and returns its URL.
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   try {
     const origin = req.headers.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
       // TODO: build line_items from the user's cart (look up prices in Supabase).
       line_items: [
