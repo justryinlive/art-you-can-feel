@@ -41,7 +41,15 @@ function img(seed: string, w: number, h: number) {
 
 const label = "font-mono text-[0.7rem] uppercase tracking-[0.2em]";
 
-export default function Home() {
+/* Mats cycle so the grid alternates colour without the data having to carry it. */
+const MAT_KEYS = Object.keys(MAT);
+
+export default async function Home() {
+  const [works, categories] = await Promise.all([
+    getProducts({ limit: GRID_SIZE }),
+    getCategories(),
+  ]);
+
   return (
     <div className="bg-bone text-ink font-sans overflow-x-hidden">
       {/* Ticker */}
@@ -179,17 +187,30 @@ export default function Home() {
                 <span className="outlined text-terracotta">Collection</span>
               </h2>
             </div>
-            <p className="max-w-xs text-base leading-relaxed">
-              A rotating selection of paintings, prints, and mixed media — each
-              one chosen for the way it moves the room.
-            </p>
+            <div className="max-w-xs">
+              <p className="text-base leading-relaxed">
+                A rotating selection of paintings, prints, and mixed media — each
+                one chosen for the way it moves the room.
+              </p>
+              <ul className="mt-4 flex flex-wrap gap-2">
+                {categories.slice(0, 5).map((c) => (
+                  <li
+                    key={c.slug}
+                    className={`${label} border-2 border-ink px-2 py-1 font-bold`}
+                  >
+                    {c.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-            {WORKS.map((w, i) => {
-              const mat = MAT[w.mat];
+            {works.map((w, i) => {
+              const mat = MAT[MAT_KEYS[i % MAT_KEYS.length]];
+              const image = primaryImage(w);
               return (
-                <figure key={w.seed} className="group">
+                <figure key={w.slug} className="group">
                   <div
                     className={`pat ${mat.pat} ${mat.bg} ${mat.fg} relative border-4 border-ink p-3 transition-transform duration-300 ease-out group-odd:rotate-[-1.5deg] group-even:rotate-[1.5deg] group-hover:rotate-0 group-hover:-translate-y-1.5`}
                     style={{ "--pat-size": "44px" } as React.CSSProperties}
@@ -199,21 +220,27 @@ export default function Home() {
                     >
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <img
-                      src={img(w.seed, 640, 800)}
-                      alt={`${w.title} by ${w.artist} — ${w.medium.toLowerCase()}`}
-                      loading="lazy"
-                      className="relative aspect-[4/5] w-full object-cover"
-                    />
+                    {image?.thumb_url ? (
+                      <img
+                        src={image.thumb_url}
+                        alt={image.alt_text ?? w.name}
+                        loading="lazy"
+                        className="relative aspect-[4/5] w-full object-cover"
+                      />
+                    ) : (
+                      <div className="relative aspect-[4/5] w-full bg-ink/10" />
+                    )}
                   </div>
                   <figcaption className="mt-5 border-t-2 border-ink pt-3">
                     <h3 className="font-display text-2xl font-bold uppercase leading-tight tracking-tight">
-                      {w.title}
+                      {w.name}
                     </h3>
-                    <p className="mt-1 text-sm font-medium">{w.artist}</p>
+                    <p className="mt-1 text-sm font-medium">
+                      {formatPrice(w.price_cents, w.currency)}
+                    </p>
                     <p className={`${label} mt-2 flex justify-between text-ink/60`}>
-                      <span>{w.medium}</span>
-                      <span>{w.year}</span>
+                      <span>{w.categories?.[0]?.name ?? "Original work"}</span>
+                      <span>{w.in_stock ? "Available" : "Sold"}</span>
                     </p>
                   </figcaption>
                 </figure>
