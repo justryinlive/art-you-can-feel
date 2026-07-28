@@ -61,7 +61,8 @@ scripts/
   sync-stripe.mjs                Mirrors the catalog into Stripe Products/Prices
   lib/env.mjs                    Reads .env.local for the bare-node scripts
 data/wix-catalog.json            Committed catalog snapshot (114 products)
-supabase/migrations/             Schema, applied by the Supabase GitHub integration
+supabase/migrations/             Schema, applied with `npm run db:push`
+supabase/config.toml             Supabase CLI config (project link, local stack)
 ```
 
 ## Catalog migration (Wix → Supabase)
@@ -103,10 +104,25 @@ are only uploaded with `--originals`.
 ## Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Apply the schema — either push to GitHub (the Supabase GitHub integration
-   applies `supabase/migrations/*.sql` automatically), or paste the migration
-   into **SQL Editor → New query** and run it.
-3. Copy the API URL and keys from **Settings → API** into `.env.local`.
+2. Copy the API URL and keys from **Settings → API** into `.env.local`.
+3. Apply the schema with the Supabase CLI:
+
+```bash
+npx supabase login                        # once per machine, opens a browser
+npm run db:link -- --project-ref <ref>    # once per clone; <ref> is the
+                                          # subdomain of NEXT_PUBLIC_SUPABASE_URL
+npm run db:push                           # applies supabase/migrations/*.sql
+```
+
+`db:push` is **not** automatic — nothing applies migrations on `git push`, and
+Vercel deploys only run `next build`. Run it yourself whenever a migration
+lands. `npm run db:status` shows which migrations the remote has already
+applied; `npm run db:new <name>` scaffolds the next one.
+
+The login token lands in `~/.supabase`, and the linked project ref in
+`supabase/.temp/` — both outside the repo, so neither is committed. `db:link`
+also prompts for the database password (**Settings → Database**); that is a
+different secret from the API keys and is not stored in `.env.local`.
 
 The migration creates the `product-media` storage bucket, all catalog tables,
 and RLS policies. Note that **no table has an insert/update/delete policy** —

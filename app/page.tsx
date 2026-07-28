@@ -210,7 +210,7 @@ export default async function Home() {
               const mat = MAT[MAT_KEYS[i % MAT_KEYS.length]];
               const image = primaryImage(w);
               return (
-                <figure key={w.slug} className="group">
+                <figure key={w.slug} className="group flex h-full flex-col">
                   <div
                     className={`pat ${mat.pat} ${mat.bg} ${mat.fg} relative border-4 border-ink p-3 transition-transform duration-300 ease-out group-odd:rotate-[-1.5deg] group-even:rotate-[1.5deg] group-hover:rotate-0 group-hover:-translate-y-1.5`}
                     style={{ "--pat-size": "44px" } as React.CSSProperties}

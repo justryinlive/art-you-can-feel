@@ -7,6 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "db:link": "supabase link",
+    "db:new": "supabase migration new",
+    "db:status": "supabase migration list",
+    "db:push": "supabase db push",
     "catalog:scrape": "node scripts/scrape-wix.mjs",
     "catalog:media": "node scripts/fetch-media.mjs",
     "catalog:import": "node scripts/import-catalog.mjs",
@@ -29,6 +33,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "sharp": "^0.34.5",
+    "supabase": "^2.110.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
