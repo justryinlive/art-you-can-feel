@@ -1,9 +1,14 @@
+import { getCategories, getProducts, formatPrice, primaryImage } from "@/lib/catalog";
+
 const NAV = [
   { label: "Gallery", href: "#gallery" },
   { label: "Artists", href: "#artists" },
   { label: "About", href: "#about" },
   { label: "Visit", href: "#visit" },
 ];
+
+/* How many works the landing page's featured grid shows at once. */
+const GRID_SIZE = 9;
 
 const TICKER = [
   "On view now",
@@ -12,15 +17,6 @@ const TICKER = [
   "412 Magnolia Ave",
   "Wed–Sun · 11–7",
   "New show: Roots & Rhythm",
-];
-
-const WORKS = [
-  { seed: "ayc-harmony", title: "Harmony in Ochre", artist: "Maya Ellison", medium: "Acrylic on canvas", year: "2024", mat: "indigo" },
-  { seed: "ayc-roots", title: "Roots & Rhythm", artist: "Darius Kwame", medium: "Mixed media", year: "2023", mat: "terracotta" },
-  { seed: "ayc-sunday", title: "Sunday Morning", artist: "Adaeze Okafor", medium: "Oil on linen", year: "2024", mat: "jade" },
-  { seed: "ayc-crown", title: "Crown of Cotton", artist: "Theo Baptiste", medium: "Charcoal & gold leaf", year: "2022", mat: "plum" },
-  { seed: "ayc-memory", title: "Memory of Water", artist: "Simone Carter", medium: "Watercolor", year: "2024", mat: "marigold" },
-  { seed: "ayc-gather", title: "The Gathering", artist: "Marcus Reyes", medium: "Acrylic & collage", year: "2023", mat: "indigo" },
 ];
 
 const ARTISTS = [
