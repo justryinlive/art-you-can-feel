@@ -139,10 +139,10 @@ html {
 }
 
 /* Type detailing */
+/* Fill is knocked out but `color` stays intact, so currentColor still paints the stroke. */
 .outlined {
-  color: transparent;
+  -webkit-text-fill-color: transparent;
   -webkit-text-stroke: 2px currentColor;
-  paint-order: stroke fill;
 }
 
 @media (max-width: 640px) {
