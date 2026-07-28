@@ -38,6 +38,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Downloaded artwork masters (~700 MB of full-resolution originals pulled from
+# the Wix CDN by scripts/fetch-media.mjs). Regenerate with that script; the
+# web-sized derivatives live in Supabase Storage. data/wix-catalog.json IS
+# committed — it is the catalog snapshot.
+/data/media/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

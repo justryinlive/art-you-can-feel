@@ -52,15 +52,66 @@ lib/
   supabase/server.ts             Server Supabase client + admin (service-role) client
   stripe.ts                      Server-side Stripe SDK
   stripe-client.ts               Browser Stripe.js loader (publishable key)
+  catalog.ts                     Typed reads of the migrated catalog (RLS-safe)
 proxy.ts                         Refreshes the Supabase auth session per request (Next 16 "Proxy")
-supabase/schema.sql              Starter tables (products, orders) with RLS
+scripts/
+  scrape-wix.mjs                 Pulls the catalog off the live Wix site
+  fetch-media.mjs                Downloads full-resolution artwork masters
+  import-catalog.mjs             Optimizes + uploads media, upserts Supabase rows
+  sync-stripe.mjs                Mirrors the catalog into Stripe Products/Prices
+  lib/env.mjs                    Reads .env.local for the bare-node scripts
+data/wix-catalog.json            Committed catalog snapshot (114 products)
+supabase/migrations/             Schema, applied by the Supabase GitHub integration
 ```
+
+## Catalog migration (Wix → Supabase)
+
+The live catalog at artyoucanfeel.com runs on **Wix Stores**. These scripts move
+it into Supabase so the store no longer depends on that subscription.
+
+Wix server-renders each page with a warmup-data block containing the exact JSON
+its widgets hydrate from, so extraction needs no API key or headless browser.
+Product URLs come from `/store-products-sitemap.xml` — the category page only
+renders the first 24 of 114 and paginates client-side.
+
+```bash
+npm run catalog:scrape    # live site  → data/wix-catalog.json  (committed)
+npm run catalog:media     # Wix CDN    → data/media/  (~700 MB, gitignored)
+npm run catalog:import    # disk       → Supabase Storage + tables
+npm run catalog:stripe    # Supabase   → Stripe Products/Prices
+```
+
+Every step is **idempotent**, keyed on the Wix ids, so re-running updates in
+place rather than duplicating. That means you can keep selling on Wix and
+re-sync until you're ready to cut over.
+
+Useful flags:
+
+```bash
+node scripts/import-catalog.mjs --dry-run       # report, change nothing
+node scripts/import-catalog.mjs --skip-media    # rows only, no uploads
+node scripts/import-catalog.mjs --originals     # also upload the masters
+node scripts/import-catalog.mjs --only=lion     # single product
+node scripts/sync-stripe.mjs --dry-run
+```
+
+Images are re-encoded to WebP at two sizes (2000px display, 600px thumbnail).
+That is deliberate: the originals are 5–8 MB each and carry **iPhone EXIF
+including GPS coordinates**, which re-encoding strips. Masters stay on disk and
+are only uploaded with `--originals`.
 
 ## Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Open **SQL Editor → New query**, paste `supabase/schema.sql`, and run it.
+2. Apply the schema — either push to GitHub (the Supabase GitHub integration
+   applies `supabase/migrations/*.sql` automatically), or paste the migration
+   into **SQL Editor → New query** and run it.
 3. Copy the API URL and keys from **Settings → API** into `.env.local`.
+
+The migration creates the `product-media` storage bucket, all catalog tables,
+and RLS policies. Note that **no table has an insert/update/delete policy** —
+the anon key can only read. Every write goes through the service role key from
+the scripts and server routes.
 
 ## Stripe setup
 
@@ -83,8 +134,10 @@ supabase/schema.sql              Starter tables (products, orders) with RLS
 
 ## Next steps (building the store)
 
-- [ ] Product listing + detail pages (read from `products`)
-- [ ] Cart (client state) and a real `line_items` build in the checkout route
-- [ ] Persist orders in the `checkout.session.completed` webhook handler
+- [x] Catalog migrated off Wix (114 products, 11 categories, 133 media items)
+- [x] Checkout builds `line_items` from server-side Supabase price lookups
+- [ ] Product listing + detail pages (use `lib/catalog.ts`)
+- [ ] Cart (client state) posting `{ slug, quantity }` to the checkout route
+- [ ] Persist orders + `order_items` in the `checkout.session.completed` handler
 - [ ] Supabase Auth (sign in / account / order history)
-- [ ] Validate all prices server-side — never trust client-sent amounts
+- [ ] Replace the placeholder artwork on the landing page with real products
