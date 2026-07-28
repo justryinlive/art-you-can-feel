@@ -231,14 +231,16 @@ export default async function Home() {
                       <div className="relative aspect-[4/5] w-full bg-ink/10" />
                     )}
                   </div>
-                  <figcaption className="mt-5 border-t-2 border-ink pt-3">
-                    <h3 className="font-display text-2xl font-bold uppercase leading-tight tracking-tight">
+                  {/* Titles run one or two lines; reserving two keeps the price
+                      and meta rows aligned across a row of cards. */}
+                  <figcaption className="mt-5 flex flex-1 flex-col border-t-2 border-ink pt-3">
+                    <h3 className="min-h-[2.5em] font-display text-2xl font-bold uppercase leading-tight tracking-tight">
                       {w.name}
                     </h3>
                     <p className="mt-1 text-sm font-medium">
                       {formatPrice(w.price_cents, w.currency)}
                     </p>
-                    <p className={`${label} mt-2 flex justify-between text-ink/60`}>
+                    <p className={`${label} mt-auto flex justify-between pt-2 text-ink/60`}>
                       <span>{w.categories?.[0]?.name ?? "Original work"}</span>
                       <span>{w.in_stock ? "Available" : "Sold"}</span>
                     </p>
